@@ -42,7 +42,64 @@
         </div>
         
         <div data-role="page" id="search-page">
+            
+            <script id="searchItemTemplate" type="text/x-jquery-tmpl">
+                <li>
+                    <h2>${name}</h2>
+                </li>
+            </script>
+            
+            <script>
+            (function(undefined){
+                
+                var page = $('div:jqmData(role=page)#search-page');
+                
+                page.bind( 'pagecreate', function(){
+                    
+                    var search = page.find('form#search-form'),
+                        list = page.find('ul#results');
 
+                    search.submit(function(e){
+
+                        list.empty().listview('refresh');
+
+                        db.search({
+                            success: function(data) {
+                                if( data.results.result && data.results.result.length > 0 ) {
+
+                                    $.each(data.results.result, function(i) {
+
+                                        $('#searchItemTemplate').tmpl(this).appendTo(list);
+
+                                    });
+
+                                } else {
+
+                                    $('<li><h2>No Results Found</h2></li>').appendTo(list);
+
+                                }
+
+                                list.listview('refresh');
+                            },
+                            failure: function() {
+
+                                $('<li><h2>No Results Found</h2></li>').appendTo(list);
+
+                            },
+                            searchType: $(this).find('select[name=type]').val(),
+                            query:      $(this).find('input[name=search]').val()
+                        });
+
+                        //Auto-close virtual keyboards
+                        $(this).find('input[name=search]').blur()
+
+                        e.preventDefault();
+                    });
+                    
+                });
+            })();
+            </script>
+            
             <div data-role="header">
                 <h1>Search</h1>
             </div>
