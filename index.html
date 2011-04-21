@@ -84,7 +84,8 @@
                             failure: function() {
 
                                 $('<li><h2>No Results Found</h2></li>').appendTo(list);
-
+                                
+                                list.listview('refresh');
                             },
                             searchType: $(this).find('select[name=type]').val(),
                             query:      $(this).find('input[name=search]').val()

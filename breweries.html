@@ -23,6 +23,107 @@
         
         <div data-role="page" id="browse">
             
+            <script id="breweryItemTemplate" type="text/x-jquery-tmpl">
+                <li>
+                    <a href="#">
+                        <h2>${name}</h2>
+                        <p><strong>${phone}</strong></p>
+                        <p>
+                            ${address.street_address}, 
+                            ${address.locality}, ${address.region} ${address.postal_code}
+                        </p>
+                        <span class="ui-li-count">${metadata.geo.distance} m</span>
+                    </a>
+                </li>
+            </script>
+            
+            <script>
+            (function(undefined){
+                
+                var page = $('div:jqmData(role=page)#browse'),
+                    list = page.find('ul#results'),
+                    currentLoc = null;
+                
+                var refreshBreweries = function(location) {
+                    
+                    var geo = {
+                        lat: location.latitude,
+                        lng: location.longitude,
+                        raidus: 50,
+                        units: 'm'
+                    };
+                    
+                    list.empty().listview('refresh');
+                    
+                    $.mobile.pageLoading();
+                    
+                    db.breweries({
+                        success: function(data) {
+                            
+                            $.mobile.pageLoading(true);
+                            
+                            if( data.breweries.brewery && data.breweries.brewery.length > 0 ) {
+
+                                $.each(data.breweries.brewery, function(i) {
+                                    
+                                    var item = $('#breweryItemTemplate').tmpl(this).appendTo(list);
+                                    
+                                });
+                                
+                            } else {
+                                
+                                $('<li><h2>No Results Found</h2></li>').appendTo(list);
+                                
+                            }
+
+                            list.listview('refresh');
+                        },
+                        failure: function() {
+                            
+                            $.mobile.pageLoading(true);
+                            
+                            $('<li><h2>ERROR!</h2></li>').appendTo(list);
+                            
+                            list.listview('refresh');
+                            
+                        },
+                        geo: geo,
+                        metadata: true
+                    });
+                };
+
+                page.live( 'pageshow', function() {
+                    if( currentLoc ) {
+                        refreshBreweries(currentLoc);
+                    } else if( navigator.geolocation ) {
+                        //throw up loading spinner
+                        $.mobile.pageLoading();	
+
+                        navigator.geolocation.getCurrentPosition(
+                            //on success
+                            function(position){
+                                currentLoc = {
+                                    latitude:  position.coords.latitude,
+                                    longitude: position.coords.longitude
+                                };
+
+                                //remove loading spinner
+                                $.mobile.pageLoading(true);	
+
+                                refreshBreweries(currentLoc);
+                            }, 
+                            //on error
+                            function() { 
+                                //remove loading spinner
+                                $.mobile.pageLoading(true);	
+                            }
+                        );
+                    }
+                });
+                
+            })();
+            </script>
+            
             <div data-role="header">
                 <h1>Browse Local Breweries</h1>
             </div>
