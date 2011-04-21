@@ -37,6 +37,32 @@
                 </li>
             </script>
             
+            <script id="breweryPageTemplate" type="text/x-jquery-tmpl">
+                <div data-role="page" id="details-${id}">
+                    <div data-role="header">
+                        <h1>Details</h1>
+                    </div>
+
+                    <div data-role="content">
+                        <h2>${name}</h2>
+                    
+                    
+                        {{if website}}
+                        <a href="${website}" data-role="button">Website</a>
+                        {{/if}}
+                        <a href="${metadata.links.detail}" data-role="button">More Details...</a>
+                    
+                        {{if description}}
+                        <p>${description}</p>
+                        {{/if}}
+                    </div>
+
+                    <div data-role="footer">
+                        <h4>jQuery Mobile: For Fun and Profit</h4>
+                    </div>
+                </div>
+            </script>
+            
             <script>
             (function(undefined){
                 
@@ -67,6 +93,33 @@
                                 $.each(data.breweries.brewery, function(i) {
                                     
                                     var item = $('#breweryItemTemplate').tmpl(this).appendTo(list);
+                                    
+                                    //Dynamically Generate Page
+                                    var that = this;
+                                    item.find('a').click(function(e){
+                                        var detailPage = $('#breweryPageTemplate').tmpl(that);
+                                        
+                                        //Replace if page exists
+                                        if( $('#details-' + that.id).length > 0 )
+                                            $('#details-' + that.id).replaceWith(detailPage);
+                                        else
+                                            detailPage.appendTo('body');
+                                        
+                                        //Enhance page
+                                        detailPage.page();
+                                        
+                                        //Override Back Button
+                                        detailPage.find('a:jqmData(rel=back)').bind('click', function(e){
+                                            $.mobile.changePage([detailPage, page], 'fade', false, false);
+                                            
+                                            return false;
+                                        });
+                                        
+                                        //Transition to new page
+                                        $.mobile.changePage([page, detailPage], 'fade', false, false);
+                                        
+                                        e.preventDefault();
+                                    });
                                     
                                 });
                                 
