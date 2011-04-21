@@ -100,5 +100,5 @@
     
     
     //For presentation purposes
-    exports.db = new BreweryDB('566d6fb707fa568ce52eb49fc56f5712');
+    exports.db = new BreweryDB('APIKEYHERE');
 })(window);
