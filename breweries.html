@@ -45,8 +45,9 @@
 
                     <div data-role="content">
                         <h2>${name}</h2>
-                    
-                    
+                        
+                        <div id="map_canvas" style="width: 100%; height: 150px;"></div>
+                        
                         {{if website}}
                         <a href="${website}" data-role="button">Website</a>
                         {{/if}}
@@ -69,6 +70,14 @@
                 var page = $('div:jqmData(role=page)#browse'),
                     list = page.find('ul#results'),
                     currentLoc = null;
+                
+                window._init_google_maps = function() {
+                    
+                };
+                
+                page.bind('pagebeforecreate', function(){
+                    $.getScript('http://maps.google.com/maps/api/js?sensor=true&callback=_init_google_maps');
+                });
                 
                 var refreshBreweries = function(location) {
                     
@@ -96,17 +105,33 @@
                                     
                                     //Dynamically Generate Page
                                     var that = this;
-                                    item.find('a').click(function(e){
+                                    item.find('a').bind('click', function(e){
                                         var detailPage = $('#breweryPageTemplate').tmpl(that);
                                         
-                                        //Replace if page exists
-                                        if( $('#details-' + that.id).length > 0 )
-                                            $('#details-' + that.id).replaceWith(detailPage);
-                                        else
-                                            detailPage.appendTo('body');
+                                        //Remove existing page
+                                        $('#' + detailPage.attr('id')).remove();
+                                        //Add new page
+                                        detailPage.appendTo('body');
                                         
                                         //Enhance page
                                         detailPage.page();
+                                        
+                                        //Init Google Maps
+                                        var breweryLoc = new google.maps.LatLng(that.metadata.geo.lat, that.metadata.geo.lng);
+                                        var currentLoc = new google.maps.LatLng(geo.lat, geo.lng);
+                                        
+                                        var mapOptions = {
+                                            zoom: 10,
+                                            center: breweryLoc,
+                                            mapTypeId: google.maps.MapTypeId.ROADMAP
+                                        };
+                                        
+                                        var map = new google.maps.Map(detailPage.find('#map_canvas')[0], mapOptions);
+                                        
+                                        var marker = new google.maps.Marker({
+                                            map: map,
+                                            position: breweryLoc
+                                        });
                                         
                                         //Override Back Button
                                         detailPage.find('a:jqmData(rel=back)').bind('click', function(e){
