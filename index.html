@@ -33,7 +33,7 @@
                 <ul data-role="listview" data-inset="true"> 
                     <li data-role="list-divider">I need a beer...</li>
                     <li><a href="#">Browse Breweries</a></li>
-                    <li><a href="#">Search</a></li>
+                    <li><a href="#search-page">Search</a></li>
                 </ul>
                 
             </div>
@@ -42,5 +42,41 @@
                 <h4>jQuery Mobile: For Fun and Profit</h4>
             </div>
         </div>
+        
+        
+        <div data-role="page" id="search-page">
+
+            <div data-role="header">
+                <h1>Search</h1>
+            </div>
+            
+            <div data-role="content">
+                
+                <form id="search-form" data-ajax="false">
+                    <div data-role="fieldcontain">
+                        <label for="search"></label>
+                        <input type="search" name="search" id="search" value="" placeholder="Search For..." />
+                    </div>
+                    <div data-role="fieldcontain">
+                        <label for="type" class="select"></label>
+                    	<select name="type" id="type">
+                    		<option value="brewery">Brewery</option>
+                    		<option value="beer">Beer</option>
+                    	</select>
+                    </div>
+                </form>
+                
+                <ul data-role="listview" id="results">
+                    <li>Nothing Yet</li>
+                </ul>
+                
+            </div>
+            
+            <div data-role="footer">
+                <h4>jQuery Mobile: For Fun and Profit</h4>
+            </div>
+            
+        </div>
+        
     </body>
 </html>
