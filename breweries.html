@@ -6,17 +6,17 @@
 	    
         <title>jQuery Mobile: For Fun and Profit</title>
         
-        <link rel="stylesheet" href="scripts/jquerymobile/jquery.mobile-1.0a4.1.min.css" />
+        <link rel="stylesheet" href="scripts/jquerymobile/jquery.mobile-1.0rc1.min.css" />
         <link rel="stylesheet" href="styles/custom.css" />
         
-        <script src="scripts/jquery-1.5.min.js"></script>
+        <script src="scripts/jquery-1.6.4.min.js"></script>
         <script>
     		//Setup jQuery Mobile options *before* loading script
     		$( document ).bind( "mobileinit", function(){
     		    console.log("event:mobileninit");
     		});
     	</script>
-        <script src="scripts/jquerymobile/jquery.mobile-1.0a4.1.min.js"></script>
+        <script src="scripts/jquerymobile/jquery.mobile-1.0rc1.min.js"></script>
         <script src="scripts/jquery.tmpl.js"></script>
         <script src="brewerydb/brewerydb.js"></script>
         
@@ -24,6 +24,106 @@
     <body>
         
         <div data-role="page" id="browse">
+            
+            <script id="breweryItemTemplate" type="text/x-jquery-tmpl">
+                <li>
+                    <a href="#">
+                        <h2>${name}</h2>
+                        <p><strong>${phone}</strong></p>
+                        <p>
+                            ${address.street_address}, 
+                            ${address.locality}, ${address.region} ${address.postal_code}
+                        </p>
+                        <span class="ui-li-count">${metadata.geo.distance} m</span>
+                    </a>
+                </li>
+            </script>
+            
+            <script>
+            (function(undefined){
+                
+                var $page = $(':jqmData(role=page)#browse'),
+                    currentLoc = null;
+                
+                var refreshBreweries = function(location) {
+                    
+                    var $list = $page.find('#results');
+                    
+                    var geo = {
+                        lat: location.latitude,
+                        lng: location.longitude,
+                        raidus: 50,
+                        units: 'm'
+                    };
+                    
+                    $list.empty().listview('refresh');
+                    
+                    $.mobile.showPageLoadingMsg();
+                    
+                    db.breweries({
+                        success: function(data) {
+                            
+                            $.mobile.hidePageLoadingMsg();
+                            
+                            if( data.breweries.brewery && data.breweries.brewery.length > 0 ) {
+
+                                $.each(data.breweries.brewery, function(i) {
+                                    var item = $('#breweryItemTemplate').tmpl(this).appendTo($list);
+                                });
+                                
+                            } else {
+                                
+                                $('<li><h2>No Results Found</h2></li>').appendTo(list);
+                                
+                            }
+                            
+                            $list.listview('refresh');
+                        },
+                        failure: function() {
+                            
+                            $.mobile.hidePageLoadingMsg();
+                            
+                            $('<li><h2>ERROR!</h2></li>').appendTo($list);
+                            
+                            $list.listview('refresh');
+                            
+                        },
+                        geo: geo,
+                        metadata: true
+                    });
+                };
+
+                $page.live( 'pageshow', function() {
+                    if( currentLoc ) {
+                        refreshBreweries(currentLoc);
+                    } else if( navigator.geolocation ) {
+                        //throw up loading spinner
+                        $.mobile.showPageLoadingMsg();
+
+                        navigator.geolocation.getCurrentPosition(
+                            //on success
+                            function(position){
+                                currentLoc = {
+                                    latitude:  position.coords.latitude,
+                                    longitude: position.coords.longitude
+                                };
+
+                                //remove loading spinner
+                                $.mobile.hidePageLoadingMsg();
+
+                                refreshBreweries(currentLoc);
+                            }, 
+                            //on error
+                            function() { 
+                                //remove loading spinner
+                                $.mobile.hidePageLoadingMsg();
+                            }
+                        );
+                    }
+                });
+                
+            })();
+            </script>
             
             <div data-role="header">
                 <h1>Browse Local Breweries</h1>
