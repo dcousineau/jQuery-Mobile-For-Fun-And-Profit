@@ -3,10 +3,15 @@ require 'Slim/Slim.php';
 
 Slim::init();
 
-Slim::get('/(:endpoint)', function ($endpoint = null) {
+Slim::get('/(:endpoint)(/:id)', function ($endpoint = null, $id = null) {
     $params = Slim::request()->get();
     
-    $url = "http://www.brewerydb.com/api/" . $endpoint . "?" . http_build_query($params);
+    $url = "http://www.brewerydb.com/api/" . $endpoint;
+    
+    if ($id)
+        $url .= "/" . $id;
+    
+    $url .= "?" . http_build_query($params);
     
     $stream = fopen($url, 'r');
     $metadata = stream_get_meta_data($stream);

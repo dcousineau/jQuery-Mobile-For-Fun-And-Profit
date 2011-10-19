@@ -96,6 +96,33 @@
         });
     };
     
+    BreweryDB.prototype.breweryDetails = function(options, sync) {
+        options = $.extend({
+            success:    function() {},
+            failure:    function() {},
+            id:         null,
+        }, options);
+        
+        if( options.id == null )
+            throw new Error("id is required");
+        
+        var params = {
+            apikey: this._apiKey,
+            format: 'json',
+            metadata: true
+        };
+        
+        $.ajax({
+            url:      BreweryDB.url + "breweries/" + options.id,
+            type:     'GET',
+            dataType: 'json',
+            data:     params,
+            success:  options.success,
+            failure:  options.failure,
+            async:    !sync
+        });
+    };
+    
     exports.BreweryDB = BreweryDB;
     
     

@@ -27,7 +27,7 @@
             
             <script id="breweryItemTemplate" type="text/x-jquery-tmpl">
                 <li>
-                    <a href="#">
+                    <a href="#details-${id}">
                         <h2>${name}</h2>
                         <p><strong>${phone}</strong></p>
                         <p>
@@ -39,13 +39,43 @@
                 </li>
             </script>
             
+            <script id="breweryPageTemplate" type="text/x-jquery-tmpl">
+                <div data-role="page" id="details-${id}">
+                    <div data-role="header">
+                        <a data-icon="arrow-l" data-direction="reverse" href="#browse">Breweries</a>
+                        <h1>Details</h1>
+                    </div>
+
+                    <div data-role="content">
+                        <h2>${name}</h2>
+                    
+                    
+                        {{if website}}
+                        <a href="${website}" data-role="button">Website</a>
+                        {{/if}}
+                        <a href="${metadata.links.detail}" data-role="button">More Details...</a>
+                    
+                        {{if description}}
+                        <p>${description}</p>
+                        {{/if}}
+                    </div>
+
+                    <div data-role="footer">
+                        <h4>jQuery Mobile: For Fun and Profit</h4>
+                    </div>
+                </div>
+            </script>
+            
             <script>
             (function(undefined){
                 
                 var $page = $(':jqmData(role=page)#browse'),
-                    currentLoc = null;
+                    currentLoc = null,
+                    breweryModel = {};
                 
                 var refreshBreweries = function(location) {
+                    
+                    breweryModel = {};
                     
                     var $list = $page.find('#results');
                     
@@ -68,7 +98,8 @@
                             if( data.breweries.brewery && data.breweries.brewery.length > 0 ) {
 
                                 $.each(data.breweries.brewery, function(i) {
-                                    var item = $('#breweryItemTemplate').tmpl(this).appendTo($list);
+                                    breweryModel[this.id] = this;
+                                    var $item = $('#breweryItemTemplate').tmpl(this).appendTo($list);
                                 });
                                 
                             } else {
@@ -92,6 +123,57 @@
                         metadata: true
                     });
                 };
+                
+                var loadDetailPage = function(id, options) {
+                    if (!breweryModel[id]) {
+                        $.mobile.showPageLoadingMsg();
+                        
+                        db.breweryDetails({
+                            success: function(data) {
+                                $.mobile.hidePageLoadingMsg();
+                                
+                                var brewery = data.breweries.brewery;
+                                
+                                breweryModel[brewery.id] = brewery;
+                            },
+                            failure: function() {
+                                $.mobile.hidePageLoadingMsg();
+                            },
+                            id: id
+                        }, true);
+                    }
+                    
+                    var breweryDetail = breweryModel[id],
+                        $detailPage   = $('#breweryPageTemplate').tmpl(breweryDetail);
+                    
+                    //Replace if page exists
+                    if( $('#details-' + breweryDetail.id).length > 0 )
+                        $('#details-' + breweryDetail.id).replaceWith($detailPage);
+                    else
+                        $detailPage.appendTo('body');
+                    
+                    $detailPage.page();
+                    
+                    options.dataUrl = '#details-' + breweryDetail.id;
+            		$.mobile.changePage( $detailPage, options );
+                }
+                
+                $(document).bind( 'pagebeforechange', function(e, data) {
+                     // see http://jquerymobile.com/test/docs/pages/page-dynamic.html
+                     if ( typeof data.toPage === "string" ) {
+                         var u = $.mobile.path.parseUrl( data.toPage ),
+                             re = /^#details-([0-9]+)/i
+                             match = null;
+
+                 		if ( match = u.hash.match(re) ) {
+                 		    var id = match[1];
+                 		    
+                 		    loadDetailPage(id, data.options);
+                 		    
+                 		    e.preventDefault();
+             		    }
+                     }
+                });
 
                 $page.live( 'pageshow', function() {
                     if( currentLoc ) {
