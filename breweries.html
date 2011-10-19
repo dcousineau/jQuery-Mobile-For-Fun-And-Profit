@@ -175,7 +175,7 @@
                      }
                 });
 
-                $page.live( 'pageshow', function() {
+                $page.live( 'pagecreate', function() {
                     if( currentLoc ) {
                         refreshBreweries(currentLoc);
                     } else if( navigator.geolocation ) {
@@ -208,6 +208,7 @@
             </script>
             
             <div data-role="header">
+                <a data-icon="home" data-direction="reverse" href="index.html">Home</a>
                 <h1>Browse Local Breweries</h1>
             </div>
             
