@@ -5,7 +5,7 @@
     }
     
     //BreweryDB.url = "http://www.brewerydb.com/api/";
-    BreweryDB.url = "http://localhost/jquerymobile/brewerydb/index.php/";
+    BreweryDB.url = "http://localhost/jquery-mobile-demo/brewerydb/index.php/";
     
     BreweryDB.prototype.search = function(options) {
         options = $.extend({
